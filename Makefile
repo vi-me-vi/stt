@@ -1,51 +1,46 @@
-CC       := cc
-CFLAGS := -std=c11 -O3 -g -Wall -Wextra -Wpedantic -Wstrict-aliasing
-LDFLAGS  := -L/usr/lib -lm
-BIN      := ./bin
-OBJ_DIR  := ./obj
-TARGET   := stt
-INCLUDE  := -Iinclude/
-SRC      := ./src
-SOURCES  :=               \
-   $(wildcard SRC/*.c)    \
-   $(wildcard SRC/**/*.c) \
+TARGET       := stt
 
-OBJECTS  := $(SOURCES:SRC/%.c=$(OBJ_DIR)/%.o)
-DEPENDENCIES \
-         := $(OBJECTS:.o=.d)
+CC           := cc
+CFLAGS       := -std=c11 -O0 -g -Wall -Wextra
+#-Wpedantic -Wstrict-aliasing
+LDFLAGS      := -Lusr/lib -lm
+INCLUDE      := -Iinclude/
 
-all: build $(BIN)/$(TARGET)
+BIN_DIR      := ./bin
+OBJ_DIR      := ./obj
+SRC_DIR      := ./src
 
-$(OBJ_DIR)/%.o: $(SRC)/%.c
+SOURCES      := $(shell find $(SRC_DIR) -name '*.c')
+SRCS_F       := $(foreach src,$(SOURCES),$(subst $(SRC_DIR)/, , $(src)))
+OBJECTS      := $(SRCS_F:%.c=$(OBJ_DIR)/%.o)
+DEPENDENCIES := $(OBJECTS:.o=.d)
+
+
+all: build $(BIN_DIR)/$(TARGET)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $< -MMD -o $@
 
-$(BIN)/$(TARGET): $(OBJECTS)
+$(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $(BIN)/$(TARGET) $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/$(TARGET) $^ $(LDFLAGS)
 
 -include $(DEPENDENCIES)
 
 .PHONY: all build clean info
 
 build:
-	@mkdir -p $(BIN)
+	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(OBJ_DIR)
-
-# debug: CFLAGS += -DDEBUG -g
-# debug: all
-
-# release: CFLAGS += -O2
-# release: all
 
 clean:
 	-@rm -rvf $(OBJ_DIR)/*
-	-@rm -rvf $(BIN)/*
+	-@rm -rvf $(BIN_DIR)/*
 
 info:
-	@echo $(OBJECTS)
 	@echo "[*] Application dir: ${APP_DIR}     "
 	@echo "[*] Object dir:      ${OBJ_DIR}     "
-	@echo "[*] Sources:         ${SOURCES}     "
-	@echo "[*] Objects:         ${OBJECTS}     "
-	@echo "[*] Dependencies:    ${DEPENDENCIES}"
+	@echo "[*] Object dir:      ${SRC_DIR}     "
+	@echo "[*] Object dir:      ${SOURCES}     "
+	@echo "[*] Object dir:      ${OBJECTS}     "

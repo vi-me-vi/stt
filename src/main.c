@@ -1,3 +1,8 @@
+// #define  _GNU_SOURCE
+#define _POSIX_SOURCE 1
+#define  _POSIX_C_SOURCE 200809L
+
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
