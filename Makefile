@@ -1,7 +1,7 @@
 TARGET       := stt
 
 CC           := cc
-CFLAGS       := -std=c11 -O0 -g -Wall -Wextra
+CFLAGS       := -std=c23 -O0 -g -Wall -Wextra
 #-Wpedantic -Wstrict-aliasing
 LDFLAGS      := -Lusr/lib -lm
 INCLUDE      := -Iinclude/

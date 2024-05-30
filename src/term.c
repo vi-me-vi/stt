@@ -9,7 +9,7 @@
 #include <errno.h>
 
 
-// inspired by: https://cboard.cprogramming.com/c-programming/157438-capturing-keyboard-input-one-character-time.html#post1165318
+// Inspired by: https://cboard.cprogramming.com/c-programming/157438-capturing-keyboard-input-one-character-time.html#post1165318
 
 /* Call this to change the terminal related to the stream to "raw" state.
  * (Usually you call this with stdin).
