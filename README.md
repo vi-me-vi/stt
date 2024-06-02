@@ -25,10 +25,10 @@ Options:
 $ stt -u https://whatthecommit.com/index.txt
 ```
 
-OR
+OR for a harder challenge
 
 ```sh
-$ stt -u https://whatthecommit.com/index.txt
+$ stt -u https://sherlock-holm.es/stories/plain-text/scan.txt
 ```
 
 ## Building and compatibility
