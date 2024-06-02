@@ -89,6 +89,9 @@ int run_typer(FILE *fp) {
     char        *work_line    = NULL;   // Current line coppied for modification
     char        *start_marker = NULL;   // Used to cut off padded strings
 
+    fprintf(stdout, "Press <ctrl+c> to stop typer\n");
+    fflush(stdout);
+
     while ((read = getline(&line, &len, fp)) != -1) {
 
         /* Handle empty strings and cut off padding */

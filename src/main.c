@@ -75,9 +75,6 @@ int main(int argc, char *argv[]) {
     }
 
     /* Typer */
-    fprintf(stdout, "Press <ctrl+c> to quit.\n");
-    fflush(stdout);
-
     run_typer(fp);
 
     /* Clean up & restore terminal */

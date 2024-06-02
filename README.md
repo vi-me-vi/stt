@@ -2,8 +2,8 @@
 
 ## Usage
 
-```sh
-$ stt --help
+```console
+ user@computer:~$ stt --help
  ______     ______   ______
 /\  ___\   /\__  _\ /\__  _\
 \ \___  \  \/_/\ \/ \/_/\ \/
@@ -21,14 +21,14 @@ Options:
 
 ## If you want to try it out
 
-```sh
-$ stt -u https://whatthecommit.com/index.txt
+```console
+user@computer:~$ stt -u https://whatthecommit.com/index.txt
 ```
 
 OR for a harder challenge
 
-```sh
-$ stt -u https://sherlock-holm.es/stories/plain-text/scan.txt
+```console
+user@computer:~$ stt -u https://sherlock-holm.es/stories/plain-text/scan.txt
 ```
 
 ## Building and compatibility
