@@ -16,12 +16,26 @@
 int main(int argc, char *argv[]) {
     FILE *fp;
 
-    /* ARGS */
+    /* Print logo */
+    printf(" ______     ______   ______  \n\
+          \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
+          \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
+          \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
+          \r  \\/_____/     \\/_/     \\/_/ \n\
+          \r   Simple    Terminal   Typer\n\n");
+
+    /*
+     * ARGS:
+     * -h,--help
+     *  -f,--file
+     *  -u,--url
+    */
     if (argc < 2 || argc > 3) {
         printf("Usage: %s [OPTION] SOURCE", argv[0]);
         return EXIT_SUCCESS;
     }
 
+    /* Process args */
     if (strcmp("--help", argv[1]) == 0 || strcmp("-h", argv[1]) == 0) {
         printf("Usage:·%s·[OPTION]·SOURCE\n \
                 \r\n \
@@ -33,13 +47,13 @@ int main(int argc, char *argv[]) {
         );
         return EXIT_SUCCESS;
     } else if (strcmp(argv[1], "--file") == 0 || strcmp(argv[1], "-f") == 0) {
-        if (argc < 3) {
+        if (argc < 3) {  /* Handle no actual filepath passed */
             printf("Usage: %s %s SOURCE", argv[0], argv[1]);
             return EXIT_SUCCESS;
         }
         run_filer(&fp, argv[2], 'l');
     } else if (strcmp(argv[1], "--url") == 0 || strcmp(argv[1], "-u") == 0) {
-        if (argc < 3) {
+        if (argc < 3) {  /* Handle no actual URL passed */
             printf("Usage: %s %s SOURCE", argv[0], argv[1]);
             return EXIT_SUCCESS;
         }
