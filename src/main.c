@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
      *  -u,--url
     */
     if (argc < 2 || argc > 3) {
-        printf("Usage: %s [OPTION] SOURCE", argv[0]);
+        printf("Usage: %s [OPTION] SOURCE\n", argv[0]);
         return EXIT_SUCCESS;
     }
 
