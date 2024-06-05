@@ -17,6 +17,7 @@ static size_t write_data(const void *ptr, const size_t size, const size_t nmemb,
 /*
  * Helper function to read text from web to tmp file
  * More info: https://curl.se/libcurl/c/url2file.html
+ * TODO: add error handling for curl
 */
 static int read_from_web(FILE **fp, const char *url) {
     CURL *curl_handle;
@@ -32,7 +33,9 @@ static int read_from_web(FILE **fp, const char *url) {
 
     if(fp) {
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, *fp);
-        curl_easy_perform(curl_handle);
+        if (curl_easy_perform(curl_handle)) {
+            return EXIT_FAILURE;
+        }
     }
 
     curl_easy_cleanup(curl_handle);

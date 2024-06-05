@@ -13,6 +13,11 @@
 
 
 
+#define MIN_ARGS 2
+#define MAX_ARGS 3
+
+
+
 int main(int argc, char *argv[]) {
     FILE *fp;
 
@@ -30,7 +35,7 @@ int main(int argc, char *argv[]) {
      *  -f,--file
      *  -u,--url
     */
-    if (argc < 2 || argc > 3) {
+    if (argc < MIN_ARGS || argc > MAX_ARGS) {
         printf("Usage: %s [OPTION] SOURCE", argv[0]);
         return EXIT_SUCCESS;
     }
@@ -51,13 +56,21 @@ int main(int argc, char *argv[]) {
             printf("Usage: %s %s SOURCE", argv[0], argv[1]);
             return EXIT_SUCCESS;
         }
-        run_filer(&fp, argv[2], 'l');
+        if (run_filer(&fp, argv[2], 'l')) {
+            fprintf(stderr, "Error opening file\n");
+            fflush(stderr);
+            return EXIT_FAILURE;
+        }
     } else if (strcmp(argv[1], "--url") == 0 || strcmp(argv[1], "-u") == 0) {
         if (argc < 3) {  /* Handle no actual URL passed */
             printf("Usage: %s %s SOURCE", argv[0], argv[1]);
             return EXIT_SUCCESS;
         }
-        run_filer(&fp, argv[2], 'w');
+        if (run_filer(&fp, argv[2], 'w')) {
+            fprintf(stderr, "Error pulling text\n");
+            fflush(stderr);
+            return EXIT_FAILURE;
+        }
     } else {
         printf("Unknown option\nRun with --help for more information");
         return EXIT_FAILURE;
