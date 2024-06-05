@@ -1,6 +1,6 @@
 TARGET       := stt
 
-CC           := cc
+CC           := gcc
 CFLAGS       := -std=c23 -O0 -g -Wall -Wextra
 #-Wpedantic -Wstrict-aliasing
 LDFLAGS      := -L/usr/lib -lm -lcurl
