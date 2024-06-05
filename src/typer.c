@@ -140,7 +140,7 @@ int run_typer(FILE *fp, bool preserve_formatting) {
             }
 
             if (c == '\n') {  /* Handle new line */
-                if (start != 0) {
+                if (start != 0) {  /* Display stats */
                     time_t end;
                     time(&end);
 
@@ -156,7 +156,7 @@ int run_typer(FILE *fp, bool preserve_formatting) {
                     sum_acc += acc;
                     sum_speed += speed;
                     line_c++;
-                } else {
+                } else { /* Handle ignored new line */
                     fprintf(stdout, "\n");
                     fflush(stdout);
                 }

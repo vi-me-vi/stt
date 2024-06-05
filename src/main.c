@@ -32,6 +32,7 @@
 
 
 
+/* Hold all configs in one place */
 typedef struct conf {
     char filer_mode;
     char* source;
@@ -89,7 +90,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    config.source = argv[argc-1];
+    config.source = argv[argc-1];  /* Set source from args */
+
     if (run_filer(&fp, config.source, config.filer_mode)) {
         fprintf(stderr, "Error reading from source\n");
         fflush(stderr);
@@ -123,9 +125,11 @@ int main(int argc, char *argv[]) {
 
 int handle_args(char arg, conf *config) {
     switch (arg) {
+        /* Display help and exit */
         case 'h':
             printf(HELPTEXT);
             exit(EXIT_SUCCESS);
+        /* Set source mode to local file */
         case 'f':
             if (config->filer_mode != '\0') {
                 fprintf(stderr, "Incompatible/multiple source modes\n");
@@ -134,6 +138,7 @@ int handle_args(char arg, conf *config) {
             }
             config->filer_mode = 'l';
             break;
+        /* Set source mode to URL */
         case 'u':
             if (config->filer_mode != '\0') {
                 fprintf(stderr, "Incompatible/multiple source modes\n");
@@ -142,9 +147,11 @@ int handle_args(char arg, conf *config) {
             }
             config->filer_mode = 'w';
             break;
+        /* Set config to preserve original formatting */
         case 'p':
             config->preserve_formatting = true;
             break;
+        /* Handle invalid options */
         default:
             printf("Unknown argument\nRun with --help for more information\n");
             return EXIT_FAILURE;
