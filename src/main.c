@@ -22,7 +22,7 @@
             \r   Simple    Terminal   Typer\n\n"
 #define MIN_ARGS 2
 #define MAX_ARGS 4
-#define HELPTEXT "Usage:·stt·[OPTION]·SOURCE\n \
+#define HELPTEXT "Usage: stt [OPTION] SOURCE\n \
                 \r\n \
                 \rOptions:\n \
                 \r  -h,--help\t\t\tDisplay help message\n \

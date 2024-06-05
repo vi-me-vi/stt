@@ -11,7 +11,7 @@
   \/_____/     \/_/     \/_/
    Simple    Terminal   Typer
 
-Usage:·stt·[OPTION]·SOURCE
+Usage: stt [OPTION] SOURCE
 
 Options:
   -h,--help                     Display help message
