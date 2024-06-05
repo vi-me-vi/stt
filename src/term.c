@@ -47,7 +47,7 @@ int term_init(const SttTerm *term) {
     }
 
     /* Discard all unread input and untransmitted output. */
-    tcflush(fd, TCIOFLUSH);
+    /* tcflush(fd, TCIOFLUSH); */
 
     /* Get current terminal settings. */
     if (tcgetattr(fd, &old)) {

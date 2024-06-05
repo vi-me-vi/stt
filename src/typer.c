@@ -193,7 +193,7 @@ int run_typer(FILE *fp, bool preserve_formatting) {
 
             /* Handle <ctrl+c> signal */
             if (c == 3) {
-                if (line_c > 0) {
+                if (line_c > 1) {
                     fprintf(
                         stdout, "\n%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
                         KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
