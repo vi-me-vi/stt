@@ -25,9 +25,9 @@
 #define HELPTEXT "Usage:·stt·[OPTION]·SOURCE\n \
                 \r\n \
                 \rOptions:\n \
-                \r  -h,--help\tDisplay help message\n \
-                \r  -f,--file\tUse local file as source\n \
-                \r  -u,--url \tUse URL to a webpage as source\n \
+                \r  -h,--help\t\t\tDisplay help message\n \
+                \r  -f,--file\t\t\tUse local file as source\n \
+                \r  -u,--url \t\t\tUse URL to a webpage as source\n \
                 \r  -p,--preserve_formatting\tPreserve original formatting of the source\n"
 
 

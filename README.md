@@ -11,12 +11,13 @@
   \/_____/     \/_/     \/_/
    Simple    Terminal   Typer
 
-Usage: stt [OPTION] SOURCE
+Usage:·stt·[OPTION]·SOURCE
 
 Options:
-  -h,--help     Display help message
-  -f,--file     TEXT Path to file, used for typing
-  -u,--url      TEXT URL of a PLAINTEXT page, used for typing
+  -h,--help                     Display help message
+  -f,--file                     Use local file as source
+  -u,--url                      Use URL to a webpage as source
+  -p,--preserve_formatting      Preserve original formatting of the source
 ```
 
 ## If you want to try it out
