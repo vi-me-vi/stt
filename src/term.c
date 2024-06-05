@@ -124,9 +124,9 @@ int term_restore(const SttTerm *term) {
     }
 
     /* Discard all unread input and untransmitted output. */
-    do {
+    /* do {
         result = tcflush(fd, TCIOFLUSH);
-    } while (result == -1 && errno == EINTR);
+    } while (result == -1 && errno == EINTR); */
 
     /* Restore terminal state. */
     do {

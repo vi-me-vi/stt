@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -13,66 +14,85 @@
 
 
 
+#define LOGO " ______     ______   ______  \n\
+            \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
+            \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
+            \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
+            \r  \\/_____/     \\/_/     \\/_/ \n\
+            \r   Simple    Terminal   Typer\n\n"
 #define MIN_ARGS 2
-#define MAX_ARGS 3
+#define MAX_ARGS 4
+#define HELPTEXT "Usage:·stt·[OPTION]·SOURCE\n \
+                \r\n \
+                \rOptions:\n \
+                \r  -h,--help\tDisplay help message\n \
+                \r  -f,--file\tUse local file as source\n \
+                \r  -u,--url \tUse URL to a webpage as source\n \
+                \r  -p,--preserve_formatting\tPreserve original formatting of the source\n"
 
+
+
+typedef struct conf {
+    char filer_mode;
+    char* source;
+    bool preserve_formatting;
+} conf;
+
+
+int handle_args(char, conf*);
 
 
 int main(int argc, char *argv[]) {
-    FILE *fp;
+    FILE *fp      = NULL;
+    int opt_count = 0;
+    conf config   = {
+        .filer_mode          = '\0',
+        .source              = NULL,
+        .preserve_formatting = false,
+    };
 
     /* Print logo */
-    printf(" ______     ______   ______  \n\
-          \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
-          \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
-          \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
-          \r  \\/_____/     \\/_/     \\/_/ \n\
-          \r   Simple    Terminal   Typer\n\n");
+    printf(LOGO);
 
-    /*
-     * ARGS:
-     * -h,--help
-     *  -f,--file
-     *  -u,--url
-    */
+    /* Check usage */
     if (argc < MIN_ARGS || argc > MAX_ARGS) {
-        printf("Usage: %s [OPTION] SOURCE", argv[0]);
+        printf("Usage: %s [OPTIONS] SOURCE", argv[0]);
         return EXIT_SUCCESS;
     }
 
     /* Process args */
-    if (strcmp("--help", argv[1]) == 0 || strcmp("-h", argv[1]) == 0) {
-        printf("Usage:·%s·[OPTION]·SOURCE\n \
-                \r\n \
-                \rOptions:\n \
-                \r  -h,--help\tDisplay help message\n \
-                \r  -f,--file\tTEXT Path to file, used for typing\n \
-                \r  -u,--url \tTEXT URL of a PLAINTEXT page, used for typing\n",
-            argv[0]
-        );
-        return EXIT_SUCCESS;
-    } else if (strcmp(argv[1], "--file") == 0 || strcmp(argv[1], "-f") == 0) {
-        if (argc < 3) {  /* Handle no actual filepath passed */
-            printf("Usage: %s %s SOURCE", argv[0], argv[1]);
-            return EXIT_SUCCESS;
-        }
-        if (run_filer(&fp, argv[2], 'l')) {
-            fprintf(stderr, "Error opening file\n");
-            fflush(stderr);
+    for (int i = 1; i < argc; i++) {
+        if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-') {  /* Handle --arg type arguments */
+            handle_args(argv[i][2], &config);
+            opt_count++;
+        } else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {  /* Handle -h and -pf type arguments */
+            for (size_t arg_i = 1; arg_i < strlen(argv[i]); arg_i++) {
+                handle_args(argv[i][arg_i], &config);
+            }
+            opt_count++;
+        } else if (i < argc - 1) {  /* Ignore last arg, ince it defines source */
+            printf("Unknown argument\nRun with --help for more information\n");
             return EXIT_FAILURE;
         }
-    } else if (strcmp(argv[1], "--url") == 0 || strcmp(argv[1], "-u") == 0) {
-        if (argc < 3) {  /* Handle no actual URL passed */
-            printf("Usage: %s %s SOURCE", argv[0], argv[1]);
-            return EXIT_SUCCESS;
-        }
-        if (run_filer(&fp, argv[2], 'w')) {
-            fprintf(stderr, "Error pulling text\n");
-            fflush(stderr);
-            return EXIT_FAILURE;
-        }
-    } else {
-        printf("Unknown option\nRun with --help for more information");
+    }
+
+    /* Check parsed config and proceed */
+    if (config.filer_mode == '\0') {
+        fprintf(stderr, "Source mode not defined\n");
+        fflush(stderr);
+        return EXIT_FAILURE;
+    }
+
+    if (opt_count == argc - 1) {
+        fprintf(stderr, "Source not defined");
+        fflush(stderr);
+        return EXIT_FAILURE;
+    }
+
+    config.source = argv[argc-1];
+    if (run_filer(&fp, config.source, config.filer_mode)) {
+        fprintf(stderr, "Error reading from source\n");
+        fflush(stderr);
         return EXIT_FAILURE;
     }
 
@@ -88,7 +108,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Typer */
-    run_typer(fp);
+    run_typer(fp, config.preserve_formatting);
 
     /* Clean up & restore terminal */
     fclose(fp);
@@ -97,5 +117,37 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    return EXIT_SUCCESS;
+}
+
+
+int handle_args(char arg, conf *config) {
+    switch (arg) {
+        case 'h':
+            printf(HELPTEXT);
+            exit(EXIT_SUCCESS);
+        case 'f':
+            if (config->filer_mode != '\0') {
+                fprintf(stderr, "Incompatible/multiple source modes\n");
+                fflush(stderr);
+                return EXIT_FAILURE;
+            }
+            config->filer_mode = 'l';
+            break;
+        case 'u':
+            if (config->filer_mode != '\0') {
+                fprintf(stderr, "Incompatible/multiple source modes\n");
+                fflush(stderr);
+                return EXIT_FAILURE;
+            }
+            config->filer_mode = 'w';
+            break;
+        case 'p':
+            config->preserve_formatting = true;
+            break;
+        default:
+            printf("Unknown argument\nRun with --help for more information\n");
+            return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
