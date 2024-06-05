@@ -78,16 +78,20 @@ void mark_error(char **line, ssize_t *len, int *cindex) {
 }
 
 
-int run_typer(FILE *fp) {
-    int         c;                      // Typed-in character
-    int         cindex;                 // Index in current line
-    int         err_count;              // Error counter
-    ssize_t     read;                   // Length of current line
-    time_t      start         = 0;      // Clock used to measure timings
-    size_t      len           = 0;      // Getline buffer length
-    char        *line         = NULL;   // Current line
-    char        *work_line    = NULL;   // Current line coppied for modification
-    char        *start_marker = NULL;   // Used to cut off padded strings
+int run_typer(FILE *fp, bool preserve_formatting) {
+    int         c;                      /* Typed-in character */
+    int         cindex;                 /* Index in current line */
+    int         err_count;              /* Error counter */
+    ssize_t     read;                   /* Length of current line */
+    time_t      start         = 0;      /* Clock used to measure timings */
+    size_t      len           = 0;      /* Getline buffer length */
+    char        *line         = NULL;   /* Current line */
+    char        *work_line    = NULL;   /* Current line coppied for modification */
+    char        *start_marker = NULL;   /* Used to cut off padded strings */
+    int         typed_chars   = 0;      /* Tracking number of chars typed-in */
+    int         sum_acc       = 0;      /* Sum of accuracies used to calculate average */
+    float       sum_speed     = 0;      /* Sum of speeds to calculate average */
+    int         line_c        = 0;      /* Counter of lines user interracted with ti show averages */
 
     fprintf(stdout, "Press <ctrl+c> to stop typer\n");
     fflush(stdout);
@@ -98,7 +102,7 @@ int run_typer(FILE *fp) {
         start_marker = line;
         if(line[0] == '\n') {
             continue;
-        } else if(line[0] == ' ' || line[0] == '\t') {
+        } else if(!preserve_formatting && (line[0] == ' ' || line[0] == '\t')) {
             while (*start_marker == ' ' || *start_marker == '\t') {
                 start_marker++;
                 read--;
@@ -121,6 +125,7 @@ int run_typer(FILE *fp) {
 
         cindex = 0;
         err_count = 0;
+        typed_chars = 0;
         start = 0;
 
         while (true) {
@@ -130,21 +135,32 @@ int run_typer(FILE *fp) {
             c = getchar(); /* Or c = getc(stdin); */
 
             /* When started typing at new line, start timer */
-            if (start == 0) {
+            if (start == 0 && c != '\n') {
                 time(&start);
             }
 
             if (c == '\n') {  /* Handle new line */
-                time_t end;
-                time(&end);
-                fprintf(
-                    stdout, "    %s[ Accuracy: %d%% | Speed: %.2lf char/s ]%s\n",
-                    KPUR,
-                    (int)(100.0 - ((float)err_count / (float)read * 100.0)),
-                    (float)cindex / difftime(end, start),
-                    KNRM
-                );
-                fflush(stdout);
+                if (start != 0) {
+                    time_t end;
+                    time(&end);
+
+                    int acc = (int)(100.0 - ((float)err_count / (float)typed_chars * 100.0));
+                    float speed = (float)cindex / difftime(end, start);
+
+                    fprintf(
+                        stdout, "    %s[ Accuracy: %d%% | Speed: %.2lf char/s ]%s\n",
+                        KPUR, acc, speed, KNRM
+                    );
+                    fflush(stdout);
+
+                    sum_acc += acc;
+                    sum_speed += speed;
+                    line_c++;
+                } else {
+                    fprintf(stdout, "\n");
+                    fflush(stdout);
+                }
+
                 break;  /* Advance outer loop */
             } else if (c == 127) {  /* Handle backspace */
                 if (cindex > 0) {
@@ -173,9 +189,17 @@ int run_typer(FILE *fp) {
             }
 
             cindex++;
+            typed_chars++;
 
             /* Handle <ctrl+c> signal */
             if (c == 3) {
+                if (line_c > 0) {
+                    fprintf(
+                        stdout, "\n%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
+                        KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
+                    );
+                    fflush(stdout);
+                }
                 if (work_line) {
                     free(work_line);
                     free(line);
@@ -188,6 +212,13 @@ int run_typer(FILE *fp) {
 
     if (line) {
         free(line);
+    }
+    if (line_c > 1) {
+        fprintf(
+            stdout, "%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
+            KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
+        );
+        fflush(stdout);
     }
     return 0;
 }
