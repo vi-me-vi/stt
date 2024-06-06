@@ -195,7 +195,7 @@ int run_typer(FILE *fp, bool preserve_formatting) {
             if (c == 3) {
                 if (line_c > 1) {
                     fprintf(
-                        stdout, "\n%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
+                        stdout, "\n\n%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
                         KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
                     );
                     fflush(stdout);
@@ -218,7 +218,7 @@ int run_typer(FILE *fp, bool preserve_formatting) {
     }
     if (line_c > 1) {
         fprintf(
-            stdout, "%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
+            stdout, "\n%s[ Average Accuracy: %d%% | Average Speed %.2lf char/s ]%s\n",
             KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
         );
         fflush(stdout);
