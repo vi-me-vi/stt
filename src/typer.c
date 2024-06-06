@@ -199,6 +199,9 @@ int run_typer(FILE *fp, bool preserve_formatting) {
                         KPUR, sum_acc / line_c, sum_speed / (float)line_c, KNRM
                     );
                     fflush(stdout);
+                } else {
+                    fprintf(stdout, "\n");
+                    fflush(stdout);
                 }
                 if (work_line) {
                     free(work_line);
