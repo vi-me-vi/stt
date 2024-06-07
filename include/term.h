@@ -1,5 +1,5 @@
-#ifndef STT_TERM
-#define STT_TERM
+#ifndef STT_TERM_H
+#define STT_TERM_H
 
 
 #include <stdio.h>

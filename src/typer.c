@@ -38,8 +38,6 @@ void error_correction(char **line, ssize_t *len, int *cindex) {
     strcat(tmp,  *line + (*cindex + 1));
 
     /* Copy string and allign supporting values */
-    // free(*line);
-    // *line = calloc(*len - (KLEN * 2) + 1, sizeof(char));
     *line = realloc(*line, (*len - (KLEN * 2) + 1) * sizeof(char));
     if (line != NULL) {
         memcpy(*line, tmp, sizeof(char) * (*len - (KLEN * 2) + 1));
@@ -70,8 +68,6 @@ void mark_error(char **line, ssize_t *len, int *cindex) {
     strcat(tmp, *line + *cindex + 1);
 
     /* Copy string and allign supporting values */
-    // free(*line);
-    // *line = calloc(*len + (KLEN * 2) + 1, sizeof(char));
     *line = realloc(*line, (*len + (KLEN * 2) + 1) * sizeof(char));
     if (line != NULL) {
         memcpy(*line, tmp, sizeof(char) * (*len + (KLEN * 2) + 1));
