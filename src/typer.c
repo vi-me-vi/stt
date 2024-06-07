@@ -32,7 +32,7 @@ void error_correction(char **line, ssize_t *len, int *cindex) {
     tmp[*cindex - (KLEN * 2)] = '\0';
 
     /* Add char that was marked as error */
-    strncat(tmp, &((*line)[*cindex - KLEN]), 1);;
+    strncat(tmp, &((*line)[*cindex - KLEN]), 1);
 
     /* Add string ending, without additional green marker */
     strcat(tmp,  *line + (*cindex + 1));
