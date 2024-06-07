@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
 
     if (term_init(&term)) {
         fprintf(stderr, "Cannot make standard input raw: %s.\n", strerror(errno));
+        free(term.save_state);
         return EXIT_FAILURE;
     }
 
@@ -116,9 +117,11 @@ int main(int argc, char *argv[]) {
     fclose(fp);
     if (term_restore(&term)) {
         fprintf(stderr, "Cannot restore standard input state: %s.\n", strerror(errno));
+        free(term.save_state);
         return EXIT_FAILURE;
     }
 
+    free(term.save_state);
     return EXIT_SUCCESS;
 }
 
