@@ -36,8 +36,14 @@ user@computer:~$ stt -u https://sherlock-holm.es/stories/plain-text/scan.txt
 
 To build use included `Makefile`
 
+NOTE: Using example values for lib and include directories
+
+```console
+user@computer:~$ make INCLUDE_DIR=/usr/include LIB_DIR=/usr/lib
+```
+
 ***
 
-Compatible with Linux and UNIX derivatives.
+Compatible with Linux and other UNIX derivatives.
 
 Tested on Linux & MacOS.
