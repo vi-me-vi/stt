@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "filer.h"
@@ -26,9 +27,9 @@
                 \r\n \
                 \rOptions:\n \
                 \r  -h,--help\t\t\tDisplay help message\n \
-                \r  -f,--file\t\t\tUse local file as source\n \
-                \r  -u,--url \t\t\tUse URL to a webpage as source\n \
-                \r  -p,--preserve_formatting\tPreserve original formatting of the source\n"
+                \r  -f,--file\t\t\t(REQUIRED, excludes -u) Falg used to set \"local mode\", to use local file as source\n \
+                \r  -u,--url \t\t\t(REQUIRED, excludes -f) Flag used to set \"web mode\", to use URL to a webpage as source\n \
+                \r  -p,--preserve-formatting\tPreserve original formatting of the source\n"
 
 
 
@@ -40,14 +41,13 @@ typedef struct Conf {
 } Conf;
 
 
-int handle_args(char, Conf*, char**);
+int handle_args(const char, const char*, Conf*, char**);
 
 
 int main(int argc, char *argv[]) {
     char *err_message = NULL;
-    FILE *fp      = NULL;
-    int opt_count = 0;
-    Conf config   = {
+    FILE *fp          = NULL;
+    Conf config       = {
         .filer_mode          = '\0',
         .source              = NULL,
         .preserve_formatting = false,
@@ -65,19 +65,19 @@ int main(int argc, char *argv[]) {
     /* Process args */
     for (int i = 1; i < argc; i++) {
         if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-') {  /* Handle --arg type arguments */
-            if (handle_args(argv[i][2], &config, &err_message) != 0) {
+            if (handle_args(argv[i][2], argv[i], &config, &err_message) != 0) {
                 goto handle_error;
             }
-            opt_count++;
         } else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {  /* Handle -h and -pf type arguments */
             for (size_t arg_i = 1; arg_i < strlen(argv[i]); arg_i++) {
-                if (handle_args(argv[i][arg_i], &config, &err_message) != 0) {
+                if (handle_args(argv[i][arg_i], NULL, &config, &err_message) != 0) {
                     goto handle_error;
                 }
             }
-            opt_count++;
-        } else if (i < argc - 1) {  /* Ignore last arg, ince it defines source */
-            err_message = "Unknown argument\nRun with --help for more information";
+        } else if (config.source == NULL) {  /* Handle setting source in any placement */
+            config.source = argv[i];
+        } else {
+            err_message = "Multiple sources provided";
             goto handle_error;
         }
     }
@@ -88,12 +88,10 @@ int main(int argc, char *argv[]) {
         goto handle_error;
     }
 
-    if (opt_count == argc - 1) {
+    if (config.source == NULL) {
         err_message = "Source not defined";
         goto handle_error;
     }
-
-    config.source = argv[argc-1];  /* Set source from args */
 
     if (run_filer(&fp, config.source, config.filer_mode) != 0) {
         err_message = "Error reading from source";
@@ -113,7 +111,7 @@ int main(int argc, char *argv[]) {
 
     /* Typer */
     if (run_typer(fp, config.preserve_formatting) != 0) {
-        err_message = "Typer error";
+        err_message = "Typer error";  /* TODO: better error message */
         if (term_restore(&term) != 0) {
             fprintf(stderr, "Warning: Cannot restore standard input\n");
         }
@@ -143,14 +141,22 @@ handle_error:
 }
 
 
-int handle_args(char arg, Conf *config, char **err_msg) {
+int handle_args(const char arg, const char *full_arg, Conf *config, char **err_msg) {
     switch (arg) {
         /* Display help and exit */
         case 'h':
+            if (full_arg != NULL && strcmp(full_arg, "--help") != 0) {
+                *err_msg = "Unknown argument\nRun with --help for more information";
+                return 1;
+            }
             printf(HELPTEXT);
             exit(EXIT_SUCCESS);
         /* Set source mode to local file */
         case 'f':
+            if (full_arg != NULL && strcmp(full_arg, "--file") != 0) {
+                *err_msg = "Unknown argument\nRun with --help for more information";
+                return 1;
+            }
             if (config->filer_mode != '\0') {
                 *err_msg = "Incompatible/multiple source modes";
                 return 1;
@@ -159,6 +165,10 @@ int handle_args(char arg, Conf *config, char **err_msg) {
             break;
         /* Set source mode to URL */
         case 'u':
+            if (full_arg != NULL && strcmp(full_arg, "--url") != 0) {
+                *err_msg = "Unknown argument\nRun with --help for more information";
+                return 1;
+            }
             if (config->filer_mode != '\0') {
                 *err_msg = "Incompatible/multiple source modes";
                 return 1;
@@ -167,6 +177,10 @@ int handle_args(char arg, Conf *config, char **err_msg) {
             break;
         /* Set config to preserve original formatting */
         case 'p':
+            if (full_arg != NULL && strcmp(full_arg, "--preserve-formatting") != 0) {
+                *err_msg = "Unknown argument\nRun with --help for more information";
+                return 1;
+            }
             config->preserve_formatting = true;
             break;
         /* Handle invalid options */
