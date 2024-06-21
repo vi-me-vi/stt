@@ -34,7 +34,7 @@ static int read_from_web(FILE **fp, const char *url) {
     if(fp) {
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, *fp);
         if (curl_easy_perform(curl_handle)) {
-            return EXIT_FAILURE;
+            return 1;
         }
     }
 
@@ -43,7 +43,7 @@ static int read_from_web(FILE **fp, const char *url) {
 
 
     rewind(*fp);
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 
@@ -51,9 +51,9 @@ static int read_from_web(FILE **fp, const char *url) {
 static int read_from_file(FILE **fp, const char* location) {
     *fp = fopen(location, "r");
     if (!*fp) {
-        return EXIT_FAILURE;
+        return 1;
     }
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 
@@ -67,5 +67,5 @@ int run_filer(FILE **fp, const char *read_location, const char read_mode) {
     } else if (read_mode == 'l') {
         return read_from_file(fp, read_location);
     }
-    return EXIT_FAILURE;
+    return 1;
 }

@@ -33,20 +33,21 @@
 
 
 /* Hold all configs in one place */
-typedef struct conf {
+typedef struct Conf {
     char filer_mode;
     char* source;
     bool preserve_formatting;
-} conf;
+} Conf;
 
 
-int handle_args(char, conf*);
+int handle_args(char, Conf*, char**);
 
 
 int main(int argc, char *argv[]) {
+    char *err_message = NULL;
     FILE *fp      = NULL;
     int opt_count = 0;
-    conf config   = {
+    Conf config   = {
         .filer_mode          = '\0',
         .source              = NULL,
         .preserve_formatting = false,
@@ -64,38 +65,39 @@ int main(int argc, char *argv[]) {
     /* Process args */
     for (int i = 1; i < argc; i++) {
         if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-') {  /* Handle --arg type arguments */
-            handle_args(argv[i][2], &config);
+            if (handle_args(argv[i][2], &config, &err_message) != 0) {
+                goto handle_error;
+            }
             opt_count++;
         } else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {  /* Handle -h and -pf type arguments */
             for (size_t arg_i = 1; arg_i < strlen(argv[i]); arg_i++) {
-                handle_args(argv[i][arg_i], &config);
+                if (handle_args(argv[i][arg_i], &config, &err_message) != 0) {
+                    goto handle_error;
+                }
             }
             opt_count++;
         } else if (i < argc - 1) {  /* Ignore last arg, ince it defines source */
-            printf("Unknown argument\nRun with --help for more information\n");
-            return EXIT_FAILURE;
+            err_message = "Unknown argument\nRun with --help for more information";
+            goto handle_error;
         }
     }
 
     /* Check parsed config and proceed */
     if (config.filer_mode == '\0') {
-        fprintf(stderr, "Source mode not defined\n");
-        fflush(stderr);
-        return EXIT_FAILURE;
+        err_message = "Source mode not defined";
+        goto handle_error;
     }
 
     if (opt_count == argc - 1) {
-        fprintf(stderr, "Source not defined");
-        fflush(stderr);
-        return EXIT_FAILURE;
+        err_message = "Source not defined";
+        goto handle_error;
     }
 
     config.source = argv[argc-1];  /* Set source from args */
 
-    if (run_filer(&fp, config.source, config.filer_mode)) {
-        fprintf(stderr, "Error reading from source\n");
-        fflush(stderr);
-        return EXIT_FAILURE;
+    if (run_filer(&fp, config.source, config.filer_mode) != 0) {
+        err_message = "Error reading from source";
+        goto handle_error;
     }
 
     /* Set-up terminal */
@@ -104,29 +106,44 @@ int main(int argc, char *argv[]) {
         .save_state = (struct termios *) malloc(sizeof(struct termios))
     };
 
-    if (term_init(&term)) {
-        fprintf(stderr, "Cannot make standard input raw: %s.\n", strerror(errno));
-        free(term.save_state);
-        return EXIT_FAILURE;
+    if (term_init(&term) != 0) {
+        err_message = "Cannot make standard input raw";
+        goto handle_cleanup_and_error;
     }
 
     /* Typer */
-    run_typer(fp, config.preserve_formatting);
-
-    /* Clean up & restore terminal */
-    fclose(fp);
-    if (term_restore(&term)) {
-        fprintf(stderr, "Cannot restore standard input state: %s.\n", strerror(errno));
-        free(term.save_state);
-        return EXIT_FAILURE;
+    if (run_typer(fp, config.preserve_formatting) != 0) {
+        err_message = "Typer error";
+        if (term_restore(&term) != 0) {
+            fprintf(stderr, "Warning: Cannot restore standard input\n");
+        }
+        goto handle_cleanup_and_error;
     }
 
+    /* Clean up & restore terminal */
+    if (term_restore(&term) != 0) {
+        err_message = "Cannot restore standard input";
+        goto handle_cleanup_and_error;
+    }
+
+    fclose(fp);
     free(term.save_state);
     return EXIT_SUCCESS;
+
+/* Error handling block */
+handle_cleanup_and_error:
+    fclose(fp);
+    free(term.save_state);
+handle_error:
+    if (err_message != NULL) {
+        fprintf(stderr, "%s\n", err_message);
+    }
+    fflush(stderr);
+    return EXIT_FAILURE;
 }
 
 
-int handle_args(char arg, conf *config) {
+int handle_args(char arg, Conf *config, char **err_msg) {
     switch (arg) {
         /* Display help and exit */
         case 'h':
@@ -135,18 +152,16 @@ int handle_args(char arg, conf *config) {
         /* Set source mode to local file */
         case 'f':
             if (config->filer_mode != '\0') {
-                fprintf(stderr, "Incompatible/multiple source modes\n");
-                fflush(stderr);
-                return EXIT_FAILURE;
+                *err_msg = "Incompatible/multiple source modes";
+                return 1;
             }
             config->filer_mode = 'l';
             break;
         /* Set source mode to URL */
         case 'u':
             if (config->filer_mode != '\0') {
-                fprintf(stderr, "Incompatible/multiple source modes\n");
-                fflush(stderr);
-                return EXIT_FAILURE;
+                *err_msg = "Incompatible/multiple source modes";
+                return 1;
             }
             config->filer_mode = 'w';
             break;
@@ -156,8 +171,8 @@ int handle_args(char arg, conf *config) {
             break;
         /* Handle invalid options */
         default:
-            printf("Unknown argument\nRun with --help for more information\n");
-            return EXIT_FAILURE;
+            *err_msg = "Unknown argument\nRun with --help for more information";
+            return 1;
     }
-    return EXIT_SUCCESS;
+    return 0;
 }
