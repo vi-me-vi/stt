@@ -32,6 +32,13 @@ OR for a harder challenge
 user@computer:~$ stt -u https://sherlock-holm.es/stories/plain-text/scan.txt
 ```
 
+If you want to preserve formatting (for example, to use source code):
+
+```console
+user@computer:~$ stt -fp <project_dir>/src/main.c
+```
+
+
 ## Building and compatibility
 
 To build use included `Makefile`
@@ -42,8 +49,16 @@ NOTE: Using example values for lib and include directories
 user@computer:~$ make INCLUDE_DIR=/usr/include LIB_DIR=/usr/lib
 ```
 
+### Improvements
+
+Project is being built with debug enabled, without optimizations.
+
+Future plans to add release build feature.
+
+`make install` is not currently implemented.
+
 ***
 
 Compatible with Linux and other UNIX derivatives.
 
-Tested on Linux & MacOS.
+Tested on Linux & macOS.
