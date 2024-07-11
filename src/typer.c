@@ -127,8 +127,8 @@ int run_typer(FILE *fp, bool preserve_formatting) {
 
             c = getchar(); /* Or c = getc(stdin); */
 
-            /* When started typing at new line, start timer */
-            if (start == 0 && c != '\n') {
+            /* When started typing at new line (ignoring backspace), start timer */
+            if (start == 0 && (c != '\n' && c != 127)) {
                 time(&start);
             }
 

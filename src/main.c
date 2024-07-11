@@ -1,5 +1,4 @@
 #include <curl/curl.h>
-#include <errno.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -9,12 +8,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "err.h"
 #include "filer.h"
 #include "term.h"
 #include "typer.h"
 
 
 
+/* TODO: Switch from define to global consts */
 #define LOGO " ______     ______   ______  \n\
             \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
             \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
@@ -23,6 +24,7 @@
             \r   Simple    Terminal   Typer\n\n"
 #define MIN_ARGS 2
 #define MAX_ARGS 4
+/* TODO: Add the monochrome mode (-m, --monochrome) for terminals with now color */
 #define HELPTEXT "Usage: stt [OPTION] SOURCE\n \
                 \r\n \
                 \rOptions:\n \
@@ -41,11 +43,11 @@ typedef struct Conf {
 } Conf;
 
 
-int handle_args(const char, const char*, Conf*, char**);
+ErrorCode handle_args(const char, const char*, Conf*);
 
 
 int main(int argc, char *argv[]) {
-    char *err_message = NULL;
+    ErrorCode err     = ERR_NONE;
     FILE *fp          = NULL;
     Conf config       = {
         .filer_mode          = '\0',
@@ -65,36 +67,35 @@ int main(int argc, char *argv[]) {
     /* Process args */
     for (int i = 1; i < argc; i++) {
         if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-') {  /* Handle --arg type arguments */
-            if (handle_args(argv[i][2], argv[i], &config, &err_message) != 0) {
+            if (err = handle_args(argv[i][2], argv[i], &config), err != ERR_NONE) {
                 goto handle_error;
             }
         } else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {  /* Handle -h and -pf type arguments */
             for (size_t arg_i = 1; arg_i < strlen(argv[i]); arg_i++) {
-                if (handle_args(argv[i][arg_i], NULL, &config, &err_message) != 0) {
+                if (err = handle_args(argv[i][arg_i], NULL, &config), err != ERR_NONE) {
                     goto handle_error;
                 }
             }
         } else if (config.source == NULL) {  /* Handle setting source in any placement */
             config.source = argv[i];
         } else {
-            err_message = "Multiple sources provided";
+            err = ERR_INVALID_ARGUMENT;
             goto handle_error;
         }
     }
 
     /* Check parsed config and proceed */
     if (config.filer_mode == '\0') {
-        err_message = "Source mode not defined";
+        err = ERR_MISSING_ARGUMENT;
         goto handle_error;
     }
 
     if (config.source == NULL) {
-        err_message = "Source not defined";
+        err = ERR_MISSING_ARGUMENT;
         goto handle_error;
     }
 
-    if (run_filer(&fp, config.source, config.filer_mode) != 0) {
-        err_message = "Error reading from source";
+    if (err = run_filer(&fp, config.source, config.filer_mode), err != ERR_NONE) {
         goto handle_error;
     }
 
@@ -104,23 +105,22 @@ int main(int argc, char *argv[]) {
         .save_state = (struct termios *) malloc(sizeof(struct termios))
     };
 
-    if (term_init(&term) != 0) {
-        err_message = "Cannot make standard input raw";
+    if (err = term_init(&term), err != ERR_NONE) {
         goto handle_cleanup_and_error;
     }
 
     /* Typer */
-    if (run_typer(fp, config.preserve_formatting) != 0) {
-        err_message = "Typer error";  /* TODO: better error message */
-        if (term_restore(&term) != 0) {
-            fprintf(stderr, "Warning: Cannot restore standard input\n");
+    if (run_typer(fp, config.preserve_formatting) != ERR_NONE) {
+        err = ERR_GENERIC_TYPER_ERROR;
+        ErrorCode secondary_err = ERR_NONE;
+        if (secondary_err = term_restore(&term), secondary_err != ERR_NONE) {
+            fprintf(stderr, "Secondary ERROR: %s\n", stt_err_str(secondary_err));
         }
         goto handle_cleanup_and_error;
     }
 
     /* Clean up & restore terminal */
-    if (term_restore(&term) != 0) {
-        err_message = "Cannot restore standard input";
+    if (err = term_restore(&term), err != ERR_NONE) {
         goto handle_cleanup_and_error;
     }
 
@@ -133,60 +133,53 @@ handle_cleanup_and_error:
     fclose(fp);
     free(term.save_state);
 handle_error:
-    if (err_message != NULL) {
-        fprintf(stderr, "%s\n", err_message);
+    if (err != ERR_NONE) {
+        fprintf(stderr, "%s\n", stt_err_str(err));
     }
     fflush(stderr);
     return EXIT_FAILURE;
 }
 
 
-int handle_args(const char arg, const char *full_arg, Conf *config, char **err_msg) {
+ErrorCode handle_args(const char arg, const char *full_arg, Conf *config) {
     switch (arg) {
         /* Display help and exit */
         case 'h':
             if (full_arg != NULL && strcmp(full_arg, "--help") != 0) {
-                *err_msg = "Unknown argument\nRun with --help for more information";
-                return 1;
+                return ERR_INVALID_ARGUMENT;
             }
             printf(HELPTEXT);
             exit(EXIT_SUCCESS);
         /* Set source mode to local file */
         case 'f':
             if (full_arg != NULL && strcmp(full_arg, "--file") != 0) {
-                *err_msg = "Unknown argument\nRun with --help for more information";
-                return 1;
+                return ERR_INVALID_ARGUMENT;
             }
             if (config->filer_mode != '\0') {
-                *err_msg = "Incompatible/multiple source modes";
-                return 1;
+                return ERR_INCOMPATIBLE_ARGUMENTS;
             }
             config->filer_mode = 'l';
             break;
         /* Set source mode to URL */
         case 'u':
             if (full_arg != NULL && strcmp(full_arg, "--url") != 0) {
-                *err_msg = "Unknown argument\nRun with --help for more information";
-                return 1;
+                return ERR_INVALID_ARGUMENT;
             }
             if (config->filer_mode != '\0') {
-                *err_msg = "Incompatible/multiple source modes";
-                return 1;
+                return ERR_INCOMPATIBLE_ARGUMENTS;
             }
             config->filer_mode = 'w';
             break;
         /* Set config to preserve original formatting */
         case 'p':
             if (full_arg != NULL && strcmp(full_arg, "--preserve-formatting") != 0) {
-                *err_msg = "Unknown argument\nRun with --help for more information";
-                return 1;
+                return ERR_INVALID_ARGUMENT;
             }
             config->preserve_formatting = true;
             break;
         /* Handle invalid options */
         default:
-            *err_msg = "Unknown argument\nRun with --help for more information";
-            return 1;
+            return ERR_INVALID_ARGUMENT;
     }
-    return 0;
+    return ERR_NONE;
 }

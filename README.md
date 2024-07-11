@@ -15,9 +15,9 @@ Usage: stt [OPTION] SOURCE
 
 Options:
   -h,--help                     Display help message
-  -f,--file                     Use local file as source
-  -u,--url                      Use URL to a webpage as source
-  -p,--preserve_formatting      Preserve original formatting of the source
+  -f,--file                     (REQUIRED, excludes -u) Falg used to set "local mode", to use local file as source
+  -u,--url                      (REQUIRED, excludes -f) Flag used to set "web mode", to use URL to a webpage as source
+  -p,--preserve-formatting      Preserve original formatting of the source
 ```
 
 ## If you want to try it out

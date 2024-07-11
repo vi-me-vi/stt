@@ -2,18 +2,20 @@
 // #define _POSIX_SOURCE 1
 // #define _POSIX_C_SOURCE 200809L
 
+#include <errno.h>
 #include <stdlib.h>
 #include <term.h>
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
+
+#include "err.h"
 
 
 /* Inspired by: https://cboard.cprogramming.com/c-programming/157438-capturing-keyboard-input-one-character-time.html#post1165318 */
 
-/* 
+/*
  * Helper function change the terminal related to the stream to "raw" state.
  * (Usually you call this with stdin).
  * This means you get all keystrokes, and special keypresses like CTRL-C
@@ -22,20 +24,18 @@
  * You must restore the state before your program exits, or your user will
  * frantically have to figure out how to type 'reset' blind, to get their terminal
  * back to a sane state.
- *
- * The function returns 0 if success, errno error code otherwise.
 */
-int term_init(const SttTerm *term) {
+ErrorCode term_init(const SttTerm *term) {
     struct termios old, raw, actual;
     int fd;
 
     if (!term->stream) {
-        return errno = EINVAL;
+        return ERR_TERM_STREAM_ERROR;
     }
 
     /* Tell the C library not to buffer any data from/to the stream. */
     if (setvbuf(term->stream, NULL, _IONBF, 0)) {
-        return errno = EIO;
+        return ERR_TERM_SETUP_ERROR;
     }
 
     /* Write/discard already buffered data in the stream. */
@@ -43,15 +43,12 @@ int term_init(const SttTerm *term) {
 
     fd = fileno(term->stream);
     if (fd == -1) {
-        return errno = EINVAL;
+        return ERR_TERM_STREAM_ERROR;
     }
-
-    /* Discard all unread input and untransmitted output. */
-    /* tcflush(fd, TCIOFLUSH); */
 
     /* Get current terminal settings. */
     if (tcgetattr(fd, &old)) {
-        return errno;
+        return ERR_TERM_BACKUP_ERROR;
     }
 
     if (term->save_state) {
@@ -83,14 +80,14 @@ int term_init(const SttTerm *term) {
 
     /* Set the new terminal settings. */
     if (tcsetattr(fd, TCSAFLUSH, &raw)) {
-        return errno;
+        return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
     }
 
+    /* Verify if ALL necessary settings were applied */
     if (tcgetattr(fd, &actual)) {
-        const int saved_errno = errno;
         /* Try to restore old settings */
         tcsetattr(fd, TCSANOW, term->save_state);
-        return errno = saved_errno;
+        return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
     }
 
     if (
@@ -101,18 +98,18 @@ int term_init(const SttTerm *term) {
     ){
         /* Try to restore the old settings */
         tcsetattr(fd, TCSANOW, term->save_state);
-        return errno = EIO;
+        return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
     }
 
-    return 0;
+    return ERR_NONE;
 }
 
 /* Helper function to restore the saved state */
-int term_restore(const SttTerm *term) {
+ErrorCode term_restore(const SttTerm *term) {
     int fd, result;
 
     if (!term->stream || !term->save_state) {
-        return errno = EINVAL;
+        return ERR_TERM_STREAM_ERROR;
     }
 
     /* Write/discard all buffered data in the stream. Ignores errors. */
@@ -120,21 +117,18 @@ int term_restore(const SttTerm *term) {
 
     fd = fileno(term->stream);
     if (fd == -1) {
-        return errno = EINVAL;
+        return ERR_TERM_SETUP_ERROR;
     }
-
-    /* Discard all unread input and untransmitted output. */
-    /* do {
-        result = tcflush(fd, TCIOFLUSH);
-    } while (result == -1 && errno == EINTR); */
 
     /* Restore terminal state. */
     do {
         result = tcsetattr(fd, TCSAFLUSH, term->save_state);
     } while (result == -1 && errno == EINTR);
-    if (result == -1)
-        return errno;
 
-    return 0;
+    if (result == -1) {
+        return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
+    }
+
+    return ERR_NONE;
 }
 

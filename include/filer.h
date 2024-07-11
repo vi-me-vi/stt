@@ -4,8 +4,10 @@
 
 #include <stdio.h>
 
+#include "err.h"
 
 
-int run_filer(FILE**, const char*, const char);
+
+ErrorCode run_filer(FILE**, const char*, const char);
 
 #endif
