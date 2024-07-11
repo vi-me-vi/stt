@@ -15,14 +15,14 @@
 
 
 
-const char* LOGO  = " ______     ______   ______  \n\
+const char *LOGO  = " ______     ______   ______  \n\
                    \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
                    \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
                    \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
                    \r  \\/_____/     \\/_/     \\/_/ \n\
                    \r   Simple    Terminal   Typer\n\n";
 
-const char* HELPTEXT = "Usage: stt [OPTION] SOURCE\n \
+const char *HELPTEXT = "Usage: stt [OPTION] SOURCE\n \
                       \r\n \
                       \rOptions:\n \
                       \r  -h,--help\t\t\tDisplay help message\n \
@@ -38,7 +38,7 @@ const int MAX_ARGS = 4;
 /* Hold all configs in one place */
 typedef struct Conf {
     char filer_mode;
-    char* source;
+    char *source;
     bool preserve_formatting;
     bool monochrome_mode;
 } Conf;
