@@ -109,13 +109,6 @@ int run_typer(FILE *fp, bool preserve_formatting) {
             }
         }
         work_line = strdup(start_marker);
-        /*
-         * // Method used before string padding removal was added
-         * work_line = calloc(read, sizeof(char));
-         * if (work_line && line) {
-         *    memcpy(work_line, line, read);
-         * }
-        */
         work_line[read-1] = '\0';
         read--;
 
@@ -134,8 +127,8 @@ int run_typer(FILE *fp, bool preserve_formatting) {
 
             c = getchar(); /* Or c = getc(stdin); */
 
-            /* When started typing at new line, start timer */
-            if (start == 0 && c != '\n') {
+            /* When started typing at new line (ignoring backspace), start timer */
+            if (start == 0 && (c != '\n' && c != 127)) {
                 time(&start);
             }
 

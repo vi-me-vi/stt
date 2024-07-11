@@ -2,9 +2,21 @@ TARGET       := stt
 
 CC           := gcc
 CFLAGS       := -std=c23 -O0 -g -Wall -Wextra
-#-Wpedantic -Wstrict-aliasing
-LDFLAGS      := -L/usr/lib -lm -lcurl
-INCLUDE      := -Iinclude/ -I/usr/include/
+
+# Check for Cc23 support
+CHECK_C23 := $(shell $(CC) -std=c23 -dM -E - < /dev/null > /dev/null 2>&1 && echo "yes" || echo "no")
+
+ifeq ($(CHECK_C23),no)
+    CFLAGS := -std=c11 -O0 -g -Wall -Wextra
+    $(info C23 standard not supported, falling back to C11)
+endif
+
+# Default paths can be overridden
+INCLUDE_DIR ?= /usr/include
+LIB_DIR ?= /usr/lib
+
+LDFLAGS      := -L$(LIB_DIR) -lm -lcurl
+INCLUDE      := -Iinclude/ -I$(INCLUDE_DIR)
 
 BIN_DIR      := ./bin
 OBJ_DIR      := ./obj
@@ -28,7 +40,7 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 
 -include $(DEPENDENCIES)
 
-.PHONY: all build clean info
+.PHONY: all build clean info help
 
 build:
 	@mkdir -p $(BIN_DIR)
@@ -39,9 +51,15 @@ clean:
 	-@rm -rvf $(BIN_DIR)/*
 
 info:
+	@echo "[*] Library dir:     ${LIB_DIR}     "
+	@echo "[*] Include dir:     ${INCLUDE_DIR} "
 	@echo "[*] Application dir: ${APP_DIR}     "
 	@echo "[*] Object dir:      ${OBJ_DIR}     "
 	@echo "[*] Object dir:      ${SRC_DIR}     "
 	@echo "[*] Object dir:      ${SOURCES}     "
 	@echo "[*] Object dir:      ${OBJECTS}     "
+
+help:
+	@echo "Usage:"
+	@echo "  make [INCLUDE_DIR=/path/to/curl/include] [LIB_DIR=/path/to/curl/lib]"
 

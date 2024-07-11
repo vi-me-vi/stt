@@ -4,13 +4,15 @@
 
 #include <stdio.h>
 
+#include "err.h"
 
-typedef struct SttTerm {
+
+typedef struct stt_term {
     FILE *const stream;
     struct termios *const save_state;
 } SttTerm;
 
-int term_init(const SttTerm*);
-int term_restore(const SttTerm*);
+ErrorCode term_init(const SttTerm*);
+ErrorCode term_restore(const SttTerm*);
 
 #endif
