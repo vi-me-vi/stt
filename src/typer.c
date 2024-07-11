@@ -49,7 +49,13 @@ void error_correction(char **line, ssize_t *len, int *cindex) {
 }
 
 
-void mark_error(char **line, ssize_t *len, int *cindex, const char* error_marker, const char* correct_marker) {
+void mark_error(
+    char        **line,
+    ssize_t     *len,
+    int         *cindex,
+    const char  *error_marker, 
+    const char  *correct_marker
+) {
     char *tmp = calloc(*len + (KLEN * 2) + 1, sizeof(char));
 
     /* Add text before char that has to be marked */

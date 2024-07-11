@@ -101,6 +101,10 @@ ErrorCode term_init(const SttTerm *term) {
         return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
     }
 
+    /* Disable cursor */
+    fprintf(stdout, "\e[?25l");
+    fflush(stdout);
+
     return ERR_NONE;
 }
 
@@ -128,6 +132,10 @@ ErrorCode term_restore(const SttTerm *term) {
     if (result == -1) {
         return ERR_TERM_ATTRIBUTE_SETTING_ERROR;
     }
+
+    /* Re-enable cursor */
+    fprintf(stdout, "\e[?25h");
+    fflush(stdout);
 
     return ERR_NONE;
 }
