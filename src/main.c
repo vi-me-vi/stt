@@ -15,24 +15,24 @@
 
 
 
-/* TODO: Switch from define to global consts */
-#define LOGO " ______     ______   ______  \n\
-            \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
-            \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
-            \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
-            \r  \\/_____/     \\/_/     \\/_/ \n\
-            \r   Simple    Terminal   Typer\n\n"
-#define MIN_ARGS 2
-#define MAX_ARGS 4
-/* TODO: Add the monochrome mode (-m, --monochrome) for terminals with now color */
-#define HELPTEXT "Usage: stt [OPTION] SOURCE\n \
-                \r\n \
-                \rOptions:\n \
-                \r  -h,--help\t\t\tDisplay help message\n \
-                \r  -f,--file\t\t\t(REQUIRED, excludes -u) Falg used to set \"local mode\", to use local file as source\n \
-                \r  -u,--url \t\t\t(REQUIRED, excludes -f) Flag used to set \"web mode\", to use URL to a webpage as source\n \
-                \r  -p,--preserve-formatting\tPreserve original formatting of the source\n"
+const char* LOGO  = " ______     ______   ______  \n\
+                   \r/\\  ___\\   /\\__  _\\ /\\__  _\\ \n\
+                   \r\\ \\___  \\  \\/_/\\ \\/ \\/_/\\ \\/ \n\
+                   \r \\/\\_____\\    \\ \\_\\    \\ \\_\\ \n\
+                   \r  \\/_____/     \\/_/     \\/_/ \n\
+                   \r   Simple    Terminal   Typer\n\n";
 
+const char* HELPTEXT = "Usage: stt [OPTION] SOURCE\n \
+                      \r\n \
+                      \rOptions:\n \
+                      \r  -h,--help\t\t\tDisplay help message\n \
+                      \r  -f,--file\t\t\t(REQUIRED, excludes -u) Falg used to set \"local mode\", to use local file as source\n \
+                      \r  -u,--url \t\t\t(REQUIRED, excludes -f) Flag used to set \"web mode\", to use URL to a webpage as source\n \
+                      \r  -p,--preserve-formatting\tPreserve original formatting of the source\n \
+                      \r  -m,--monochrome\t\tMonochrome mode (\x1B[07merror\x1B[00m | \x1B[04mcorrect input\x1B[00m)\n";
+
+const int MIN_ARGS  = 2;
+const int MAX_ARGS = 4;
 
 
 /* Hold all configs in one place */
@@ -40,6 +40,7 @@ typedef struct Conf {
     char filer_mode;
     char* source;
     bool preserve_formatting;
+    bool monochrome_mode;
 } Conf;
 
 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
     };
 
     /* Print logo */
-    printf(LOGO);
+    printf("%s", LOGO);
 
     /* Check usage */
     if (argc < MIN_ARGS || argc > MAX_ARGS) {
@@ -110,7 +111,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Typer */
-    if (run_typer(fp, config.preserve_formatting) != ERR_NONE) {
+    if (run_typer(fp, config.preserve_formatting, config.monochrome_mode) != ERR_NONE) {
         err = ERR_GENERIC_TYPER_ERROR;
         ErrorCode secondary_err = ERR_NONE;
         if (secondary_err = term_restore(&term), secondary_err != ERR_NONE) {
@@ -148,7 +149,7 @@ ErrorCode handle_args(const char arg, const char *full_arg, Conf *config) {
             if (full_arg != NULL && strcmp(full_arg, "--help") != 0) {
                 return ERR_INVALID_ARGUMENT;
             }
-            printf(HELPTEXT);
+            printf("%s", HELPTEXT);
             exit(EXIT_SUCCESS);
         /* Set source mode to local file */
         case 'f':
@@ -176,6 +177,13 @@ ErrorCode handle_args(const char arg, const char *full_arg, Conf *config) {
                 return ERR_INVALID_ARGUMENT;
             }
             config->preserve_formatting = true;
+            break;
+        /* Set config to use moinochrome hilighting */
+        case 'm':
+            if (full_arg != NULL && strcmp(full_arg, "--monochrome") != 0) {
+                return ERR_INVALID_ARGUMENT;
+            }
+            config->monochrome_mode = true;
             break;
         /* Handle invalid options */
         default:
