@@ -7,6 +7,6 @@
 
 
 
-int run_typer(FILE*, bool);
+int run_typer(FILE*, bool, bool);
 
 #endif

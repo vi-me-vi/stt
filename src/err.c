@@ -6,7 +6,7 @@
  * defined in err.h header file.
  * (Possibly switch to switch statement)
  */
-const char* ERR_MESSAGES[] = {
+const char *ERR_MESSAGES[] = {
     "No error",                                                                 /* ERR_NONE                         */
     "Pointer to NULL error",                                                    /* ERR_POINTER_TO_NULL              */
     "I/O error",                                                                /* ERR_IO_ERROR                     */
