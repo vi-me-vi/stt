@@ -32,7 +32,7 @@ const char *HELPTEXT = "Usage: stt [OPTION] SOURCE\n \
                       \r  -m,--monochrome\t\tMonochrome mode (\x1B[07merror\x1B[00m | \x1B[04mcorrect input\x1B[00m)\n";
 
 const int MIN_ARGS  = 2;
-const int MAX_ARGS = 4;
+const int MAX_ARGS = 5;
 
 
 /* Hold all configs in one place */
