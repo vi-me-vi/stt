@@ -1,10 +1,10 @@
 #ifndef STT_TERM_H
 #define STT_TERM_H
 
-
 #include <stdio.h>
 
 #include "err.h"
+
 
 
 typedef struct stt_term {

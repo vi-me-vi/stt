@@ -1,6 +1,7 @@
 #include "err.h"
 
 
+
 /*
  * Using error codes from ErrorCode,
  * defined in err.h header file.
@@ -24,6 +25,7 @@ const char *ERR_MESSAGES[] = {
     "Invalid argument\nRun with --help for more information",                   /* ERR_INVALID_ARGUMENT             */
     "Error, incompatible arguments\nRun with --help for more information",      /* ERR_INCOMPATIBLE_ARGUMENTS       */
 };
+
 
 const char* stt_err_str(const ErrorCode err) {
     if (sizeof(ERR_MESSAGES)/sizeof(char*) > err){

@@ -10,7 +10,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "err.h"
 #include "typer.h"
+
 
 
 const char *KNRM = "\x1B[00m";
@@ -49,6 +51,7 @@ void error_correction(char **line, ssize_t *len, int *cindex) {
 }
 
 
+/* Helper function to place error markers for indexed error */
 void mark_error(
     char        **line,
     ssize_t     *len,
@@ -85,23 +88,24 @@ void mark_error(
 }
 
 
-int run_typer(FILE *fp, bool preserve_formatting, bool monochrome_mode) {
-    int         c             = 0;                                  /* Typed-in character */
-    int         cindex        = 0;                                  /* Index in current line */
-    int         err_count     = 0;                                  /* Error counter */
-    ssize_t     read          = 0;                                  /* Length of current line */
-    time_t      start         = 0;                                  /* Clock used to measure timings */
-    size_t      len           = 0;                                  /* Getline buffer length */
-    char        *line         = NULL;                               /* Current line */
-    char        *work_line    = NULL;                               /* Current line coppied for modification */
-    char        *start_marker = NULL;                               /* Used to cut off padded strings */
-    int         typed_chars   = 0;                                  /* Tracking number of chars typed-in */
-    int         sum_acc       = 0;                                  /* Sum of accuracies used to calculate average */
-    float       sum_speed     = 0;                                  /* Sum of speeds to calculate average */
-    int         line_c        = 0;                                  /* Counter of lines user interracted with ti show averages */
-    const char  *correct_m    = (monochrome_mode) ? KUND : KGRN;    /* Marker used to hilight correct input */
-    const char  *incorrect_m  = (monochrome_mode) ? KREV : KRED;    /* Marker used to hilight incorrect input */
-    const char  *stat_c       = (monochrome_mode) ? "" : KPUR;      /* Used to hilight stats printout */
+/* Main runloop of typer */
+ErrorCode run_typer(FILE *fp, bool preserve_formatting, bool monochrome_mode) {
+    int         c             = 0;                                  /* Typed-in character                                       */
+    int         cindex        = 0;                                  /* Index in current line                                    */
+    int         err_count     = 0;                                  /* Error counter                                            */
+    ssize_t     read          = 0;                                  /* Length of current line                                   */
+    time_t      start         = 0;                                  /* Clock used to measure timings                            */
+    size_t      len           = 0;                                  /* Getline buffer length                                    */
+    char        *line         = NULL;                               /* Current line                                             */
+    char        *work_line    = NULL;                               /* Current line coppied for modification                    */
+    char        *start_marker = NULL;                               /* Used to cut off padded strings                           */
+    int         typed_chars   = 0;                                  /* Tracking number of chars typed-in                        */
+    int         sum_acc       = 0;                                  /* Sum of accuracies used to calculate average              */
+    float       sum_speed     = 0;                                  /* Sum of speeds to calculate average                       */
+    int         line_c        = 0;                                  /* Counter of lines user interracted with ti show averages  */
+    const char  *correct_m    = (monochrome_mode) ? KUND : KGRN;    /* Marker used to hilight correct input                     */
+    const char  *incorrect_m  = (monochrome_mode) ? KREV : KRED;    /* Marker used to hilight incorrect input                   */
+    const char  *stat_c       = (monochrome_mode) ? "" : KPUR;      /* Used to hilight stats printout                           */
 
     fprintf(stdout, "Press <ctrl+c> to stop typer\n");
     fflush(stdout);
@@ -210,7 +214,7 @@ int run_typer(FILE *fp, bool preserve_formatting, bool monochrome_mode) {
                     free(work_line);
                     free(line);
                 }
-                return 0;
+                return ERR_NONE;
             }
         }
         free(work_line);
@@ -226,6 +230,6 @@ int run_typer(FILE *fp, bool preserve_formatting, bool monochrome_mode) {
         );
         fflush(stdout);
     }
-    return 0;
+    return ERR_NONE;
 }
 

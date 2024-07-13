@@ -1,7 +1,6 @@
 #ifndef STT_ERR_H
 #define STT_ERR_H
 
-
 /* NOTE: If changed, please update error messages located in err.c */
 typedef enum error_code {
     ERR_NONE = 0,

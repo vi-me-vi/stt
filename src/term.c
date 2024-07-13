@@ -24,7 +24,7 @@
  * You must restore the state before your program exits, or your user will
  * frantically have to figure out how to type 'reset' blind, to get their terminal
  * back to a sane state.
-*/
+ */
 ErrorCode term_init(const SttTerm *term) {
     struct termios old, raw, actual;
     int fd;
