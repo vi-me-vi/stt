@@ -1,7 +1,11 @@
 TARGET       := stt
 
-CC           := gcc
-CFLAGS       := -std=c23 -O0 -g -Wall -Wextra
+# Default paths can be overridden
+CC          ?= gcc
+INCLUDE_DIR ?= /usr/include
+LIB_DIR     ?= /usr/lib
+
+CFLAGS      := -std=c23 -O0 -g -Wall -Wextra
 
 # Check for Cc23 support
 CHECK_C23 := $(shell $(CC) -std=c23 -dM -E - < /dev/null > /dev/null 2>&1 && echo "yes" || echo "no")
@@ -10,10 +14,6 @@ ifeq ($(CHECK_C23),no)
     CFLAGS := -std=c11 -O0 -g -Wall -Wextra
     $(info C23 standard not supported, falling back to C11)
 endif
-
-# Default paths can be overridden
-INCLUDE_DIR ?= /usr/include
-LIB_DIR ?= /usr/lib
 
 LDFLAGS      := -L$(LIB_DIR) -lm -lcurl
 INCLUDE      := -Iinclude/ -I$(INCLUDE_DIR)
@@ -61,5 +61,5 @@ info:
 
 help:
 	@echo "Usage:"
-	@echo "  make [INCLUDE_DIR=/path/to/curl/include] [LIB_DIR=/path/to/curl/lib]"
+	@echo "  make [INCLUDE_DIR=/path/to/curl/include] [LIB_DIR=/path/to/curl/lib] [CC=gcc]"
 

@@ -18,7 +18,7 @@ static size_t write_data(const void *ptr, const size_t size, const size_t nmemb,
  * Helper function to read text from web to tmp file
  * More info: https://curl.se/libcurl/c/url2file.html
  * TODO: add error handling for curl
-*/
+ */
 static ErrorCode read_from_web(FILE **fp, const char *url) {
     CURL *curl_handle;
 
@@ -69,7 +69,7 @@ static ErrorCode read_from_file(FILE **fp, const char* location) {
 /*
  * Function to get correct file for typing input
  * Read modes: 'w' - web, 'l' - local file
-*/
+ */
 ErrorCode run_filer(FILE **fp, const char *read_location, const char read_mode) {
     if (read_mode == 'w') {
         return read_from_web(fp, read_location);
